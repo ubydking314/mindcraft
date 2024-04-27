@@ -197,6 +197,7 @@ export class Coder {
             let interrupted = this.agent.bot.interrupt_code;
             let timedout = this.timedout;
             this.clear();
+            this.agent.log(output);
             if (!interrupted && !this.generating) this.agent.bot.emit('idle');
             return {success:true, message: output, interrupted, timedout};
         } catch (err) {
@@ -209,6 +210,7 @@ export class Coder {
             let message = this.formatOutput(this.agent.bot) + '!!Code threw exception!!  Error: ' + err;
             let interrupted = this.agent.bot.interrupt_code;
             this.clear();
+            this.agent.log(message);
             if (!interrupted && !this.generating) this.agent.bot.emit('idle');
             return {success: false, message, interrupted, timedout: false};
         }

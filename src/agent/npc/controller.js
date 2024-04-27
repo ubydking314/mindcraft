@@ -17,6 +17,7 @@ export class NPCContoller {
         this.build_goal = new BuildGoal(agent);
         this.constructions = {};
         this.last_goals = {};
+        this.failed_goals = {};
     }
 
     getBuiltPositions() {
@@ -81,6 +82,7 @@ export class NPCContoller {
     }
 
     async setGoal(name=null, quantity=1) {
+        this.failed_goals = {};
         this.last_goals = {};
         if (name) {
             this.data.curr_goal = {name: name, quantity: quantity};
@@ -95,6 +97,7 @@ export class NPCContoller {
         if (res) {
             this.data.curr_goal = res;
             console.log('Set new goal: ', res.name, ' x', res.quantity);
+            this.agent.log('Set new goal: ' + res.name + ' x' + res.quantity);
         } else {
             console.log('Error setting new goal.');
         }
@@ -161,6 +164,21 @@ export class NPCContoller {
                     let res = await this.item_goal.executeNext(goal.name, goal.quantity);
                     this.last_goals[goal.name] = res;
                     acted = true;
+
+                    if (res) {
+                        this.agent.log('Successfully obtained ' + goal.quantity + ' ' + goal.name);
+                    } else {
+                        this.agent.log('Failed to obtain ' + goal.quantity + ' ' + goal.name);
+                        if (!this.failed_goals[goal.name])
+                            this.failed_goals[goal.name] = 0;
+                        this.failed_goals[goal.name]++;
+                        if (this.failed_goals[goal.name] >= 5) {
+                            this.agent.log('Failed to obtain ' + goal.name + ' too many times. Quiting goal.');
+                            this.setGoal();
+                            return;
+                        }
+                    }
+
                     break;
                 }
             }
@@ -193,6 +211,12 @@ export class NPCContoller {
                 }
                 if (res.acted) {
                     acted = true;
+                    if (Object.keys(res.missing).length === 0) {
+                        this.agent.log('Successfully finished building a ' + goal.name);
+                    } else {
+                        let missing = Object.keys(res.missing).map((key) => key + ' x' + res.missing[key]).join(', ');
+                        this.agent.log('Need to gather ' + missing + ' to finish building the ' + goal.name);
+                    }
                     this.last_goals[goal.name] = Object.keys(res.missing).length === 0;
                     break;
                 }

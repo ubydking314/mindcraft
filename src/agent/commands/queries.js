@@ -122,5 +122,12 @@ export const queryList = [
         perform: function (agent) {
             return agent.bot.modes.getStr();
         }
+    },
+    {
+        name: "!goal",
+        description: "Get the current goal.",
+        perform: function (agent) {
+            return agent.npc.curr_goal?.name || "No goal set.";
+        }
     }
 ];

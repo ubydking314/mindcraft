@@ -1,3 +1,5 @@
+import { writeFileSync } from 'fs';
+
 import { History } from './history.js';
 import { Coder } from './coder.js';
 import { Prompter } from './prompter.js';
@@ -14,6 +16,8 @@ export class Agent {
         this.history = new History(this);
         this.coder = new Coder(this);
         this.npc = new NPCContoller(this);
+        this.logs = [];
+        this.last_log_length = 0;
 
         await this.prompter.initExamples();
 
@@ -61,8 +65,29 @@ export class Agent {
                 this.bot.emit('finished_executing');
             }
 
+            setInterval(() => {this.logPos()}, 500);
+            setInterval(() => {this.checkProgress()}, 10000);
+
             this.startEvents();
         });
+    }
+
+    checkProgress() {
+        if (this.last_log_length == this.logs.length) {
+            this.log('No progress made in the last 10 seconds. Resetting.');
+            executeCommand(this, '!reset');
+        }
+        this.last_log_length = this.logs.length;
+    }
+
+    logPos() {
+        let pos = this.bot.entity.position;
+        writeFileSync(`./bots/${this.name}/pos.json`, `{"x": ${pos.x.toFixed(2)}, "y": ${pos.y.toFixed(2)}, "z": ${pos.z.toFixed(2)}}`);
+    }
+
+    log(message) {
+        this.logs.push(message);
+        writeFileSync(`./bots/${this.name}/logs.txt`, this.logs.join('\n'));
     }
 
     cleanChat(message) {
