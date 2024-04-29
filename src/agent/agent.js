@@ -18,6 +18,7 @@ export class Agent {
         this.npc = new NPCContoller(this);
         this.logs = [];
         this.last_log_length = 0;
+        this.reset_count = 0;
 
         await this.prompter.initExamples();
 
@@ -66,16 +67,28 @@ export class Agent {
             }
 
             setInterval(() => {this.logPos()}, 500);
-            setInterval(() => {this.checkProgress()}, 10000);
+            setInterval(() => {this.checkProgress()}, 20000);
+            setInterval(() => {this.decrementResets()}, 60000);
 
             this.startEvents();
         });
     }
 
+    decrementResets() {
+        this.reset_count--;
+    }
+
     checkProgress() {
         if (this.last_log_length == this.logs.length) {
-            this.log('No progress made in the last 10 seconds. Resetting.');
-            executeCommand(this, '!reset');
+            this.reset_count++;
+            if (this.reset_count >= 6) {
+                this.log('No progress made in the last minute. Returning to spawn point.');
+                this.bot.chat('/kill');
+                this.reset_count = 0;
+            } else {
+                this.log('No progress made in the last 20 seconds. Resetting.');
+                executeCommand(this, '!restart');
+            }
         }
         this.last_log_length = this.logs.length;
     }
