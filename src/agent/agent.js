@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs';
+import { appendFileSync, writeFileSync } from 'fs';
 
 import { History } from './history.js';
 import { Coder } from './coder.js';
@@ -10,15 +10,14 @@ import { NPCContoller } from './npc/controller.js';
 
 
 export class Agent {
-    async start(profile_fp, load_mem=false, init_message=null) {
+    async start(profile_fp, load_mem=false, init_message=null, respawns=0) {
         this.prompter = new Prompter(this, profile_fp);
         this.name = this.prompter.getName();
         this.history = new History(this);
         this.coder = new Coder(this);
         this.npc = new NPCContoller(this);
-        this.logs = [];
-        this.last_log_length = 0;
-        this.reset_count = 0;
+        this.last_log = null;
+        this.respawns = respawns;
 
         await this.prompter.initExamples();
 
@@ -36,7 +35,8 @@ export class Agent {
 
             console.log(`${this.name} spawned.`);
             this.coder.clear();
-            
+            writeFileSync(`./bots/${this.name}/reset.txt`, 'reset');
+
             const ignore_messages = [
                 "Set own game mode to",
                 "Set the time to",
@@ -69,41 +69,29 @@ export class Agent {
                 this.bot.emit('finished_executing');
             }
 
-            setInterval(() => {this.logPos()}, 500);
             setInterval(() => {this.checkProgress()}, 20000);
-            setInterval(() => {this.decrementResets()}, 60000);
-
             this.startEvents();
         });
     }
 
-    decrementResets() {
-        this.reset_count--;
-    }
-
     checkProgress() {
-        if (this.last_log_length == this.logs.length) {
-            this.reset_count++;
-            if (this.reset_count >= 6) {
+        if (this.last_log === null) {
+            if (this.respawns >= 3) {
                 this.log('No progress made in the last minute. Returning to spawn point.');
                 this.bot.chat('/kill');
-                this.reset_count = 0;
+                this.respawns = 0;
+                setTimeout(() => {writeFileSync(`./bots/${this.name}/reset.txt`, 'reset')}, 5000);
             } else {
                 this.log('No progress made in the last 20 seconds. Resetting.');
                 executeCommand(this, '!restart');
             }
         }
-        this.last_log_length = this.logs.length;
-    }
-
-    logPos() {
-        let pos = this.bot.entity.position;
-        writeFileSync(`./bots/${this.name}/pos.json`, `{"x": ${pos.x.toFixed(2)}, "y": ${pos.y.toFixed(2)}, "z": ${pos.z.toFixed(2)}}`);
+        this.last_log = null;
     }
 
     log(message) {
-        this.logs.push(message);
-        writeFileSync(`./bots/${this.name}/logs.txt`, this.logs.join('\n'));
+        appendFileSync(`./bots/${this.name}/logs.txt`, message + '\n');
+        this.last_log = message;
     }
 
     cleanChat(message) {
