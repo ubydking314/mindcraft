@@ -315,8 +315,8 @@ export class ItemGoal {
         let quantity = next_info.quantity;
 
         // Prevent unnecessary attempts to obtain blocks that are not nearby
-        if (next.type === 'block' && !world.getNearbyBlockTypes(this.agent.bot, 32).includes(next.source) ||
-                next.type === 'hunt' && !world.getNearbyEntityTypes(this.agent.bot, 32).includes(next.source)) {
+        if (next.type === 'block' && !world.getNearbyBlockTypes(this.agent.bot, 64).includes(next.source) ||
+                next.type === 'hunt' && !world.getNearbyEntityTypes(this.agent.bot, 8).includes(next.source)) {
             next.fails += 1;
 
             // If the bot has failed to obtain the block before, explore
