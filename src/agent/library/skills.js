@@ -758,7 +758,7 @@ export async function moveAway(bot, distance) {
     bot.pathfinder.setMovements(new pf.Movements(bot));
     await bot.pathfinder.goto(inverted_goal);
     let new_pos = bot.entity.position;
-    log(bot, `Moved away from nearest entity to ${new_pos}.`);
+    log(bot, `Explored towards ${new_pos}.`);
     return true;
 }
 

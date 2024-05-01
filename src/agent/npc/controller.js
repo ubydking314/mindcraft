@@ -180,7 +180,6 @@ export class NPCContoller {
                     if (res) {
                         log = 'Successfully obtained ' + goal.quantity + ' ' + goal.name;
                     } else {
-                        log = 'Failed to obtain ' + goal.quantity + ' ' + goal.name;
                         if (!this.failed_goals[goal.name])
                             this.failed_goals[goal.name] = 0;
                         this.failed_goals[goal.name]++;
@@ -189,8 +188,10 @@ export class NPCContoller {
                             this.setGoal();
                         }
                     }
-                    this.agent.log(log);
-                    console.log(log);
+                    if (log) {
+                        this.agent.log(log);
+                        console.log(log);
+                    }
 
                     break;
                 }
@@ -230,7 +231,7 @@ export class NPCContoller {
                         log = 'Successfully finished building a ' + goal.name;
                     } else {
                         let missing = Object.keys(res.missing).map((key) => key + ' x' + res.missing[key]).join(', ');
-                        log = 'Finished building ' + goal.name + ' for now. Need to gather ' + missing;
+                        log = 'Pausing building ' + goal.name + ' for now. Need to gather ' + missing;
                     }
                     this.agent.log(log);
                     console.log(log);
