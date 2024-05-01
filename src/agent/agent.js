@@ -94,8 +94,8 @@ export class Agent {
     }
 
     async logStats() {
-        let res = await executeCommand('!stats');
-        res += '\n\n' + await executeCommand('!inventory');
+        let res = await executeCommand(this, '!stats');
+        res += await executeCommand(this, '!inventory');
         writeFileSync(`./bots/${this.name}/stats.txt`, res);
     }
 
