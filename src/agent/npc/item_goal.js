@@ -315,20 +315,19 @@ export class ItemGoal {
         let quantity = next_info.quantity;
 
         // Prevent unnecessary attempts to obtain blocks that are not nearby
-        if (next.type === 'block' && !world.getNearbyBlockTypes(this.agent.bot).includes(next.source) ||
-                next.type === 'hunt' && !world.getNearbyEntityTypes(this.agent.bot).includes(next.source)) {
+        if (next.type === 'block' && !world.getNearbyBlockTypes(this.agent.bot, 32).includes(next.source) ||
+                next.type === 'hunt' && !world.getNearbyEntityTypes(this.agent.bot, 32).includes(next.source)) {
             next.fails += 1;
 
             // If the bot has failed to obtain the block before, explore
             if (this.failed.includes(next.name)) {
                 this.failed = this.failed.filter((item) => item !== next.name);
                 await this.agent.coder.execute(async () => {
-                    await skills.moveAway(this.agent.bot, 8);
-                });
+                    await skills.moveAway(this.agent.bot, 32);
+                }, 1, false);
             } else {
                 this.failed.push(next.name);
                 await new Promise((resolve) => setTimeout(resolve, 500));
-                this.agent.bot.emit('idle');
             }
             return false;
         }
@@ -341,7 +340,7 @@ export class ItemGoal {
         let init_quantity = world.getInventoryCounts(this.agent.bot)[next.name] || 0;
         await this.agent.coder.execute(async () => {
             await next.execute(quantity);
-        });
+        }, 1, false);
         let final_quantity = world.getInventoryCounts(this.agent.bot)[next.name] || 0;
 
         // Log the result of the goal attempt

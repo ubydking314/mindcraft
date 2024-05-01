@@ -18,6 +18,7 @@ export class NPCContoller {
         this.constructions = {};
         this.last_goals = {};
         this.failed_goals = {};
+        this.sleeping = false;
     }
 
     getBuiltPositions() {
@@ -96,31 +97,35 @@ export class NPCContoller {
         let res = await this.agent.prompter.promptGoalSetting(this.agent.history.getHistory(), past_goals);
         if (res) {
             this.data.curr_goal = res;
-            console.log('Set new goal: ', res.name, ' x', res.quantity);
-            this.agent.log('Set new goal: ' + res.name + ' x' + res.quantity);
+            let log = 'Set new goal: ' + res.name + ' x' + res.quantity;
+            console.log(log);
+            this.agent.log(log);
         } else {
             console.log('Error setting new goal.');
         }
     }
 
     async executeNext() {
-        if (!this.agent.isIdle()) return;
         await this.agent.coder.execute(async () => {
             await skills.moveAway(this.agent.bot, 2);
-        });
+        }, 1, false);
 
-        if (!this.data.do_routine || this.agent.bot.time.timeOfDay < 13000) { 
+        let has_bed = world.getNearestBlock(this.agent.bot, 'bed', 32) !== null;
+        if (!has_bed || !this.data.do_routine || this.agent.bot.time.timeOfDay < 13000) { 
             // Exit any buildings
             let building = this.currentBuilding();
-            if (building == this.data.home) {
-                let door_pos = this.getBuildingDoor(building);
+            if (this.sleeping && building !== null && building == this.data.home) {
+                console.log('Exiting home');
+                this.agent.log('Exiting home');
+                let door_pos = this.getBuildingDoor(this.data.home);
                 if (door_pos) {
                     await this.agent.coder.execute(async () => {
                         await skills.useDoor(this.agent.bot, door_pos);
                         await skills.moveAway(this.agent.bot, 2); // If the bot is too close to the building it will try to enter again
-                    });
+                    }, 1, false);
                 }
             }
+            this.sleeping = false;
 
             // Work towards goals
             await this.executeGoal();
@@ -132,16 +137,21 @@ export class NPCContoller {
             // Return to home
             let building = this.currentBuilding();
             if (this.data.home !== null && (building === null || building != this.data.home)) {
+                console.log('Returning home');
+                this.agent.log('Returning home');
                 let door_pos = this.getBuildingDoor(this.data.home);
                 await this.agent.coder.execute(async () => {
                     await skills.useDoor(this.agent.bot, door_pos);
-                });
+                }, 1, false);
             }
 
             // Go to bed
+            console.log('Going to bed');
+            this.agent.log('Going to bed');
+            this.sleeping = true;
             await this.agent.coder.execute(async () => {
                 await skills.goToBed(this.agent.bot);
-            });
+            }, 1, false);
         }
 
         if (this.agent.isIdle())
@@ -161,23 +171,26 @@ export class NPCContoller {
             // Obtain goal item or block
             if (this.constructions[goal.name] === undefined) {
                 if (!itemSatisfied(this.agent.bot, goal.name, goal.quantity)) {
+                    console.log('Executing item goal: ' + goal.quantity + ' ' + goal.name);
                     let res = await this.item_goal.executeNext(goal.name, goal.quantity);
                     this.last_goals[goal.name] = res;
                     acted = true;
 
+                    let log = '';
                     if (res) {
-                        this.agent.log('Successfully obtained ' + goal.quantity + ' ' + goal.name);
+                        log = 'Successfully obtained ' + goal.quantity + ' ' + goal.name;
                     } else {
-                        this.agent.log('Failed to obtain ' + goal.quantity + ' ' + goal.name);
+                        log = 'Failed to obtain ' + goal.quantity + ' ' + goal.name;
                         if (!this.failed_goals[goal.name])
                             this.failed_goals[goal.name] = 0;
                         this.failed_goals[goal.name]++;
                         if (this.failed_goals[goal.name] >= 5) {
-                            this.agent.log('Failed to obtain ' + goal.name + ' too many times. Quiting goal.');
+                            log = 'Failed to obtain ' + goal.name + ' too many times. Quiting goal.';
                             this.setGoal();
-                            return;
                         }
                     }
+                    this.agent.log(log);
+                    console.log(log);
 
                     break;
                 }
@@ -186,6 +199,7 @@ export class NPCContoller {
             // Build construction goal
             else {
                 let res = null;
+                console.log('Building ' + goal.name);
                 if (this.data.built.hasOwnProperty(goal.name)) {
                     res = await this.build_goal.executeNext(
                         this.constructions[goal.name],
@@ -211,12 +225,15 @@ export class NPCContoller {
                 }
                 if (res.acted) {
                     acted = true;
+                    let log = '';
                     if (Object.keys(res.missing).length === 0) {
-                        this.agent.log('Successfully finished building a ' + goal.name);
+                        log = 'Successfully finished building a ' + goal.name;
                     } else {
                         let missing = Object.keys(res.missing).map((key) => key + ' x' + res.missing[key]).join(', ');
-                        this.agent.log('Need to gather ' + missing + ' to finish building the ' + goal.name);
+                        log = 'Finished building ' + goal.name + ' for now. Need to gather ' + missing;
                     }
+                    this.agent.log(log);
+                    console.log(log);
                     this.last_goals[goal.name] = Object.keys(res.missing).length === 0;
                     break;
                 }
@@ -235,7 +252,12 @@ export class NPCContoller {
             let sizex = this.constructions[name].blocks[0][0].length;
             let sizez = this.constructions[name].blocks[0].length;
             let sizey = this.constructions[name].blocks.length;
-            if (this.data.built[name].orientation % 2 === 1) [sizex, sizez] = [sizez, sizex];
+            if (this.data.built[name].orientation == 1)
+                [sizex, sizez] = [sizez, -sizex];
+            else if (this.data.built[name].orientation == 2)
+                [sizex, sizez] = [-sizex, -sizez];
+            else if (this.data.built[name].orientation == 3)
+                [sizex, sizez] = [-sizez, sizex];
             if (bot_pos.x >= pos.x && bot_pos.x < pos.x + sizex &&
                 bot_pos.y >= pos.y + offset && bot_pos.y < pos.y + sizey + offset &&
                 bot_pos.z >= pos.z && bot_pos.z < pos.z + sizez) {

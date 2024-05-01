@@ -177,7 +177,7 @@ export class Coder {
     }
 
     // returns {success: bool, message: string, interrupted: bool, timedout: false}
-    async execute(func, timeout=10) {
+    async execute(func, timeout=10, emit_idle=true) {
         if (!this.code_template) return {success: false, message: "Code template not loaded.", interrupted: false, timedout: false};
 
         let TIMEOUT;
@@ -198,7 +198,7 @@ export class Coder {
             let timedout = this.timedout;
             this.clear();
             this.agent.log(output);
-            if (!interrupted && !this.generating) this.agent.bot.emit('idle');
+            if (emit_idle && !interrupted && !this.generating) this.agent.bot.emit('idle');
             return {success:true, message: output, interrupted, timedout};
         } catch (err) {
             this.executing = false;
@@ -211,7 +211,7 @@ export class Coder {
             let interrupted = this.agent.bot.interrupt_code;
             this.clear();
             this.agent.log(message);
-            if (!interrupted && !this.generating) this.agent.bot.emit('idle');
+            if (emit_idle && !interrupted && !this.generating) this.agent.bot.emit('idle');
             return {success: false, message, interrupted, timedout: false};
         }
     }

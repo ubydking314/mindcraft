@@ -168,7 +168,9 @@ export class Prompter {
 
         let goal = null;
         try {
-            let data = res.split('```')[1].replace('json', '').trim();
+            let data = res;
+            if (data.includes('```'))
+                data = res.split('```')[1].replace('json', '').trim();
             goal = JSON.parse(data);
         } catch (err) {
             console.log('Failed to parse goal:', res, err);
