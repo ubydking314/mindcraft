@@ -73,6 +73,7 @@ export class Agent {
             }
 
             setInterval(() => {this.checkProgress()}, 20000);
+            setInterval(() => {this.logStats()}, 10000);
             this.startEvents();
         });
     }
@@ -90,6 +91,12 @@ export class Agent {
             }
         }
         this.last_log = null;
+    }
+
+    async logStats() {
+        let res = await this.executeCommand('!stats');
+        res += '\n\n' + await this.executeCommand('!inventory');
+        writeFileSync(`./bots/${this.name}/stats.txt`, res);
     }
 
     log(message) {

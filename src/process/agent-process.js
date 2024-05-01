@@ -19,6 +19,8 @@ export class AgentProcess {
             mkdirSync(`./bots/${name}`, { recursive: true });
         if (!existsSync(`./bots/${name}/logs.txt`))
             writeFileSync(`./bots/${name}/logs.txt`, '', );
+        if (!existsSync(`./bots/${name}/stats.txt`))
+            writeFileSync(`./bots/${name}/stats.txt`, '');
         if (!existsSync(`./bots/${name}/reset.txt`))
             writeFileSync(`./bots/${name}/reset.txt`, '');
 
