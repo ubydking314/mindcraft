@@ -46,7 +46,10 @@ export class Agent {
                 "Gamerule "
             ];
             this.bot.on('chat', (username, message) => {
-                if (username === this.name) return;
+                if (username === this.name) {
+                    this.log(message);
+                    return;
+                }
                 
                 if (ignore_messages.some((m) => message.startsWith(m))) return;
 
