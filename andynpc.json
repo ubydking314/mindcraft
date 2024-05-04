@@ -14,11 +14,7 @@
     "npc": {
         "do_routine": true,
         "do_set_goal": true,
-        "goals": [
-            "wooden_pickaxe",
-            "torch",
-            "dirt_shelter"
-        ]
+        "goals": []
     },
 
     "conversation_examples": [
