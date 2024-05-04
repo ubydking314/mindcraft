@@ -7,6 +7,7 @@ import { initModes } from './modes.js';
 import { initBot } from '../utils/mcdata.js';
 import { containsCommand, commandExists, executeCommand, truncCommandMessage } from './commands/index.js';
 import { NPCContoller } from './npc/controller.js';
+import { MemoryBank } from './memory_bank.js';
 
 
 export class Agent {
@@ -18,6 +19,7 @@ export class Agent {
         this.npc = new NPCContoller(this);
         this.last_log = null;
         this.respawns = respawns;
+        this.memory_bank = new MemoryBank();
 
         await this.prompter.initExamples();
 
@@ -222,6 +224,7 @@ export class Agent {
         });
         this.bot.on('idle', () => {
             this.bot.clearControlStates();
+            this.bot.pathfinder.stop(); // clear any lingering pathfinder
             this.bot.modes.unPauseAll();
             this.coder.executeResume();
         });
