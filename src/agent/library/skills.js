@@ -344,7 +344,7 @@ export async function defendSelf(bot, range=9) {
 
 
 
-export async function collectBlock(bot, blockType, num=1, exclude=null) {
+export async function collectBlock(bot, blockType, num=1, exclude=null, range=64) {
     /**
      * Collect one of the given block type.
      * @param {MinecraftBot} bot, reference to the minecraft bot.
@@ -367,7 +367,7 @@ export async function collectBlock(bot, blockType, num=1, exclude=null) {
     let collected = 0;
 
     for (let i=0; i<num; i++) {
-        let blocks = world.getNearestBlocks(bot, blocktypes, 64);
+        let blocks = world.getNearestBlocks(bot, blocktypes, range);
         if (exclude) {
             for (let position of exclude) {
                 blocks = blocks.filter(

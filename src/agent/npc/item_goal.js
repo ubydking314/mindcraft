@@ -153,7 +153,7 @@ class ItemNode {
         let inventory = world.getInventoryCounts(this.manager.agent.bot);
         let init_quantity = inventory[this.name] || 0;
         if (this.type === 'block') {
-            await skills.collectBlock(this.manager.agent.bot, this.source, quantity, this.manager.agent.npc.getBuiltPositions());
+            await skills.collectBlock(this.manager.agent.bot, this.source, quantity, this.manager.agent.npc.getBuiltPositions(), 124);
         } else if (this.type === 'smelt') {
             let to_smelt_name = this.recipe[0].node.name;
             let to_smelt_quantity = Math.min(quantity, inventory[to_smelt_name] || 1);
@@ -315,7 +315,7 @@ export class ItemGoal {
         let quantity = next_info.quantity;
 
         // Prevent unnecessary attempts to obtain blocks that are not nearby
-        if (next.type === 'block' && !world.getNearbyBlockTypes(this.agent.bot, 64).includes(next.source) ||
+        if (next.type === 'block' && !world.getNearbyBlockTypes(this.agent.bot, 124).includes(next.source) ||
                 next.type === 'hunt' && !world.getNearbyEntityTypes(this.agent.bot, 8).includes(next.source)) {
             next.fails += 1;
 
@@ -323,7 +323,7 @@ export class ItemGoal {
             if (this.failed.includes(next.name)) {
                 this.failed = this.failed.filter((item) => item !== next.name);
                 await this.agent.coder.execute(async () => {
-                    await skills.moveAway(this.agent.bot, 32);
+                    await skills.moveAway(this.agent.bot, 50);
                 }, 1, false);
             } else {
                 this.failed.push(next.name);

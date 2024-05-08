@@ -76,6 +76,10 @@ export class Agent {
 
             setInterval(() => {this.checkProgress()}, 20000);
             setInterval(() => {this.logStats()}, 10000);
+
+            await this.coder.execute(async () => {
+                await skills.moveAway(this.bot, 2);
+            }, 1, false);
             this.startEvents();
         });
     }
