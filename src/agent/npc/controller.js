@@ -89,7 +89,10 @@ export class NPCContoller {
             this.data.curr_goal = {name: name, quantity: quantity};
             return;
         }
-        
+
+        this.data.curr_goal = null;
+        if (!this.data.do_set_goal) return;
+
         let past_goals = {...this.last_goals};
         for (let goal in this.data.goals) {
             if (past_goals[goal.name] === undefined) past_goals[goal.name] = true;
@@ -185,7 +188,9 @@ export class NPCContoller {
                         this.failed_goals[goal.name]++;
                         if (this.failed_goals[goal.name] >= 5) {
                             log = 'Failed to obtain ' + goal.name + ' too many times. Quiting goal.';
-                            this.setGoal();
+                            this.data.curr_goal = null;
+                            if (this.data.do_set_goal)
+                                this.setGoal();
                         }
                     }
                     if (log) {
