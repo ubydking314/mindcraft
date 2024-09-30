@@ -1,8 +1,8 @@
 export default 
 {
-    "minecraft_version": "1.20.4", // supports up to 1.20.4
+    "minecraft_version": "1.7.10", // supports up to 1.20.4, using Forge for 1.7.10
     "host": "127.0.0.1", // or "localhost", "your.ip.address.here"
-    "port": 55916,
+    "port": 63177,
     "auth": "offline", // or "microsoft"
     
     "profiles": [
@@ -13,7 +13,7 @@ export default
     "load_memory": false, // load memory from previous session
     "init_message": "Say hello world and your name", // sends to all on spawn
 
-    "allow_insecure_coding": false, // allows newAction command and model can write/run code on your computer. enable at own risk
+    "allow_insecure_coding": true, // allows newAction command and model can write/run code on your computer. enable at own risk
     "code_timeout_mins": 10, // minutes code is allowed to run. -1 for no timeout
     
     "max_commands": -1, // max number of commands to use in a response. -1 for no limit
