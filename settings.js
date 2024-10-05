@@ -1,8 +1,8 @@
 export default 
 {
-    "minecraft_version": "1.7.10", // supports up to 1.20.4, using Forge for 1.7.10
-    "host": "127.0.0.1", // or "localhost", "your.ip.address.here"
-    "port": 63177,
+    "minecraft_version": "1.15.2", // supports up to 1.20.4
+    "host": "localhost", // or "localhost", "your.ip.address.here"
+    "port": 55064,
     "auth": "offline", // or "microsoft"
     
     "profiles": [
