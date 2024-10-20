@@ -3,6 +3,9 @@ export default
     "minecraft_version": "1.15.2", // supports up to 1.20.4
     "host": "localhost", // or "localhost", "your.ip.address.here"
     "port": 56863,
+=======
+    "port": 55064,
+>>>>>>> 5c986cc32eab6c24a64e6c56c2d9798447138493
     "auth": "offline", // or "microsoft"
     
     "profiles": [
