@@ -1,6 +1,6 @@
 {
-    "name": "andy",
+    "name": "llama",
 
-    "model": "deepseek"
+    "model": "llama3.1:8b-instruct-q8_0"
 
 }
